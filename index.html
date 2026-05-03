@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sovereign Fortress Auditor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&display=swap');
+        body { 
+            font-family: 'Inter', sans-serif; 
+            background-color: #0f172a;
+            color: #f8fafc;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .cherry-blossom-bg {
+            background-image: radial-gradient(circle at 10% 20%, rgba(255, 192, 203, 0.05) 0%, transparent 20%),
+                              radial-gradient(circle at 90% 80%, rgba(255, 192, 203, 0.05) 0%, transparent 20%);
+        }
+        .glass {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .gold-glow { box-shadow: 0 0 15px rgba(251, 191, 36, 0.1); }
+        .arsenal-glow { box-shadow: 0 0 15px rgba(16, 185, 129, 0.05); }
+        input, select {
+            background: rgba(15, 23, 42, 0.5) !important;
+            border: 1px solid rgba(255, 255, 255, 0.1) !important;
+            color: white !important;
+        }
+    </style>
+</head>
+<body class="cherry-blossom-bg min-h-screen pb-24">
+
+    <header class="p-6 flex justify-between items-start sticky top-0 z-30 bg-[#0f172a]/80 backdrop-blur-md border-b border-white/5">
+        <div>
+            <h1 class="text-2xl font-black tracking-tighter uppercase text-white">The Fortress</h1>
+            <p id="current-date" class="text-[10px] font-bold text-amber-400 tracking-[0.15em] uppercase mt-1"></p>
+        </div>
+        <div class="text-right">
+            <span class="block text-[10px] text-slate-500 font-bold uppercase tracking-widest">Payday (12th)</span>
+            <div class="flex items-baseline justify-end space-x-1">
+                <span id="countdown" class="text-3xl font-black text-rose-500 leading-none">9</span>
+                <span class="text-xs font-bold text-rose-500/70 uppercase">Days</span>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-md mx-auto px-6 pt-6 space-y-6">
+
+        <div class="glass rounded-[2rem] p-6 relative overflow-hidden arsenal-glow border-emerald-500/20">
+            <div class="flex justify-between items-end mb-4">
+                <div>
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Monthly Arsenal</p>
+                    <p class="text-2xl font-black text-white">$8,882.88</p>
+                </div>
+                <div class="text-right">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Remaining</p>
+                    <p id="remaining-display" class="text-2xl font-black text-emerald-400">$8,882.88</p>
+                </div>
+            </div>
+            
+            <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden mb-2">
+                <div id="arsenal-bar" class="bg-gradient-to-r from-emerald-400 to-amber-400 h-full w-0 transition-all duration-1000"></div>
+            </div>
+            
+            <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                <span class="text-slate-500">Ledger Expenses</span>
+                <span id="total-spent-display" class="text-rose-400">$0.00</span>
+            </div>
+        </div>
+
+        <div class="glass rounded-[2rem] p-6 relative overflow-hidden gold-glow">
+            <i class="ph-fill ph-bank absolute top-0 right-0 p-4 opacity-10 text-8xl rotate-12 -mt-4 -mr-4"></i>
+            
+            <div class="relative z-10">
+                <div class="flex justify-between items-start mb-4">
+                    <div>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">Current Cash Core</p>
+                        <div class="flex items-center space-x-3 mb-2">
+                            <span id="cash-display" class="text-3xl font-black text-white">$0</span>
+                            <button onclick="updateSavings()" class="bg-white/10 hover:bg-white/20 p-2 rounded-full transition active:scale-95">
+                                <i class="ph-bold ph-pencil-simple text-amber-400"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="text-right">
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">HDB Target</p>
+                        <p class="text-lg font-black text-slate-300">$30,000</p>
+                    </div>
+                </div>
+
+                <div class="space-y-2 mt-4">
+                    <div class="flex justify-between text-[10px] font-bold uppercase tracking-widest">
+                        <span class="text-slate-400">Progress</span>
+                        <span id="progress-percent" class="text-amber-400">0%</span>
+                    </div>
+                    <div class="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div id="progress-bar" class="bg-gradient-to-r from-amber-500 to-rose-500 h-full w-0 transition-all duration-1000"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+            <div class="glass rounded-3xl p-4 flex flex-col items-center justify-center text-center border-rose-500/20 shadow-lg shadow-rose-900/10">
+                <i class="ph-bold ph-skull text-rose-500 text-2xl mb-1"></i>
+                <span id="toxic-tax-display" class="text-2xl font-black text-white">$0</span>
+                <span class="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">Toxic Tax Owed</span>
+            </div>
+            
+            <div class="bg-gradient-to-br from-slate-800 to-slate-900 rounded-3xl p-4 shadow-xl border border-white/5 relative overflow-hidden flex flex-col justify-center">
+                <div class="relative z-10 text-center">
+                    <h3 class="text-amber-500 font-bold text-[9px] uppercase tracking-[0.2em] mb-1">
+                        Target Sanctuary
+                    </h3>
+                    <p class="text-sm font-bold text-slate-100 leading-tight">AMK / Bishan<br><span class="text-slate-400 text-xs font-medium">Cherry Blossom</span></p>
+                </div>
+                <i class="ph-bold ph-fan absolute -bottom-4 -right-4 text-6xl text-white/5 rotate-12"></i>
+            </div>
+        </div>
+
+        <div class="space-y-4 pt-2">
+            <div class="flex items-center justify-between">
+                <h2 class="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] flex items-center">
+                    <i class="ph-bold ph-list-dashes mr-2"></i> Audit Logs
+                </h2>
+                <button onclick="openModal()" class="bg-amber-500 text-black w-10 h-10 rounded-full flex items-center justify-center shadow-lg shadow-amber-500/20 active:scale-90 transition">
+                    <i class="ph-bold ph-plus text-lg"></i>
+                </button>
+            </div>
+
+            <div id="log-container" class="space-y-3">
+                </div>
+        </div>
+    </main>
+
+    <div id="modal" class="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-end sm:items-center justify-center hidden p-4">
+        <div class="glass w-full max-w-md rounded-[2.5rem] p-8 space-y-6 transform translate-y-full transition-transform duration-300" id="modal-content">
+            <div class="flex justify-between items-center">
+                <h2 class="text-xl font-black uppercase italic tracking-tight">Log Breach</h2>
+                <button onclick="closeModal()" class="text-slate-400 hover:text-white p-2 transition"><i class="ph-bold ph-x text-xl"></i></button>
+            </div>
+
+            <form id="expense-form" onsubmit="saveExpense(event)" class="space-y-4">
+                <div>
+                    <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Item Description</label>
+                    <input type="text" id="exp-desc" required class="w-full p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/50" placeholder="e.g., Byredo Rose, Vet Bill">
+                </div>
+                
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Cost ($)</label>
+                        <input type="number" step="0.01" id="exp-amt" required class="w-full p-4 rounded-2xl focus:outline-none focus:ring-2 focus:ring-amber-500/50" placeholder="0.00">
+                    </div>
+                    <div>
+                        <label class="text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2 block">Category</label>
+                        <select id="exp-cat" class="w-full p-4 rounded-2xl focus:outline-none appearance-none">
+                            <option value="Essential">Medical/Essential</option>
+                            <option value="Kitten">The Baby (Kitten)</option>
+                            <option value="Transport">Food/Transport</option>
+                            <option value="Impulse">Toxic Impulse</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="toxic-toggle" onclick="toggleToxic()" class="p-4 rounded-2xl border border-white/5 bg-white/5 flex items-center justify-between cursor-pointer transition-all select-none">
+                    <div class="flex items-center space-x-3">
+                        <i id="toxic-icon" class="ph-fill ph-skull text-slate-600 text-2xl"></i>
+                        <div>
+                            <p class="text-sm font-bold text-white">Toxic Impulse?</p>
+                            <p class="text-[9px] text-slate-500 uppercase font-bold tracking-widest">Adds 20% to Tax Ledger</p>
+                        </div>
+                    </div>
+                    <div id="toxic-check" class="w-6 h-6 rounded-lg border-2 border-slate-700 flex items-center justify-center transition-colors">
+                        <i class="ph-bold ph-check text-white opacity-0 text-xs"></i>
+                    </div>
+                </div>
+
+                <button type="submit" class="w-full bg-amber-500 text-black py-4 rounded-2xl font-black uppercase tracking-widest hover:bg-amber-400 active:scale-95 transition shadow-lg shadow-amber-500/20 mt-2">
+                    <i class="ph-bold ph-lock-key mr-2"></i> Submit to Auditor
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // --- System Constants ---
+        const TARGET = 30000;
+        const MONTHLY_SALARY = 8882.88;
+        
+        let state = {
+            savings: 0,
+            expenses: [],
+            isToxic: false
+        };
+
+        // --- Data Management ---
+        function loadData() {
+            const saved = localStorage.getItem('sovereign_data_v3');
+            if (saved) {
+                state = JSON.parse(saved);
+                if(!state.expenses) state.expenses = [];
+            } else {
+                // Try migrating from old save if it exists
+                const oldSaved = localStorage.getItem('sovereignAuditor') || localStorage.getItem('sovereign_data');
+                if(oldSaved) {
+                    state = JSON.parse(oldSaved);
+                }
+            }
+            updateUI();
+        }
+
+        function saveData() {
+            localStorage.setItem('sovereign_data_v3', JSON.stringify(state));
+            updateUI();
+        }
+
+        // --- Core Functions ---
+        function updateSavings() {
+            const val = prompt("Enter your current REAL cash savings toward $30k:", state.savings);
+            if (val !== null && !isNaN(val) && val !== "") {
+                state.savings = parseFloat(val);
+                saveData();
+            }
+        }
+
+        function toggleToxic() {
+            state.isToxic = !state.isToxic;
+            const btn = document.getElementById('toxic-toggle');
+            const icon = document.getElementById('toxic-icon');
+            const check = document.getElementById('toxic-check');
+
+            if(state.isToxic) {
+                btn.classList.add('bg-rose-500/10', 'border-rose-500/30');
+                btn.classList.remove('bg-white/5', 'border-white/5');
+                icon.classList.replace('text-slate-600', 'text-rose-500');
+                check.classList.replace('border-slate-700', 'border-rose-500');
+                check.classList.add('bg-rose-500');
+                check.innerHTML = '<i class="ph-bold ph-check text-white text-xs opacity-100"></i>';
+            } else {
+                btn.classList.remove('bg-rose-500/10', 'border-rose-500/30');
+                btn.classList.add('bg-white/5', 'border-white/5');
+                icon.classList.replace('text-rose-500', 'text-slate-600');
+                check.classList.replace('border-rose-500', 'border-slate-700');
+                check.classList.remove('bg-rose-500');
+                check.innerHTML = '<i class="ph-bold ph-check text-white opacity-0 text-xs"></i>';
+            }
+        }
+
+        function saveExpense(e) {
+            e.preventDefault();
+            const desc = document.getElementById('exp-desc').value;
+            const amt = parseFloat(document.getElementById('exp-amt').value);
+            const cat = document.getElementById('exp-cat').value;
+
+            if (!desc || isNaN(amt)) return;
+
+            const entry = {
+                id: Date.now(),
+                desc,
+                amt,
+                cat,
+                isToxic: state.isToxic,
+                date: new Date().getTime()
+            };
+
+            state.expenses.unshift(entry); // Add to top
+            
+            // Cleanup
+            document.getElementById('expense-form').reset();
+            if(state.isToxic) toggleToxic(); 
+            
+            closeModal();
+            saveData();
+        }
+
+        function deleteItem(id) {
+            state.expenses = state.expenses.filter(x => x.id !== id);
+            saveData();
+        }
+
+        function updateUI() {
+            // 1. Current Date Engine
+            const today = new Date();
+            const dateOptions = { weekday: 'long', year: 'numeric', month: 'short', day: 'numeric' };
+            document.getElementById('current-date').innerText = today.toLocaleDateString('en-SG', dateOptions);
+
+            // 2. Countdown Engine (Targets the 12th of current/next month)
+            let payday = new Date(today.getFullYear(), today.getMonth(), 12);
+            if (today.getDate() > 12) {
+                payday.setMonth(payday.getMonth() + 1); // Target next month's 12th
+            }
+            const diffDays = Math.ceil((payday.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+            document.getElementById('countdown').innerText = diffDays;
+
+            // 3. Monthly Arsenal Engine
+            const totalSpent = state.expenses.reduce((sum, x) => sum + x.amt, 0);
+            const remaining = MONTHLY_SALARY - totalSpent;
+            
+            document.getElementById('total-spent-display').innerText = '$' + totalSpent.toLocaleString('en-SG', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            document.getElementById('remaining-display').innerText = '$' + remaining.toLocaleString('en-SG', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+            
+            // Arsenal Progress Bar (Turns red if over budget)
+            let arsenalPercent = (totalSpent / MONTHLY_SALARY) * 100;
+            const arsenalBar = document.getElementById('arsenal-bar');
+            arsenalBar.style.width = Math.min(arsenalPercent, 100) + '%';
+            if (remaining < 0) {
+                document.getElementById('remaining-display').classList.replace('text-emerald-400', 'text-rose-500');
+                arsenalBar.classList.replace('from-emerald-400', 'from-rose-500');
+                arsenalBar.classList.replace('to-amber-400', 'to-rose-600');
+            } else {
+                document.getElementById('remaining-display').classList.replace('text-rose-500', 'text-emerald-400');
+                arsenalBar.classList.replace('from-rose-500', 'from-emerald-400');
+                arsenalBar.classList.replace('to-rose-600', 'to-amber-400');
+            }
+
+            // 4. Cash Core Engine
+            document.getElementById('cash-display').innerText = `$${state.savings.toLocaleString('en-SG')}`;
+            const progressPercent = Math.min((state.savings / TARGET) * 100, 100);
+            document.getElementById('progress-bar').style.width = progressPercent + '%';
+            document.getElementById('progress-percent').innerText = Math.round(progressPercent) + '%';
+
+            // 5. Toxic Tax Engine
+            const tax = state.expenses.filter(x => x.isToxic).reduce((sum, x) => sum + (x.amt * 0.2), 0);
+            document.getElementById('toxic-tax-display').innerText = `$${Math.round(tax).toLocaleString('en-SG')}`;
+
+            // 6. Log Renderer
+            const container = document.getElementById('log-container');
+            container.innerHTML = '';
+
+            if (state.expenses.length === 0) {
+                container.innerHTML = `
+                    <div class="p-8 border border-dashed border-white/10 rounded-[2rem] text-center bg-white/5">
+                        <i class="ph-fill ph-wallet text-4xl text-slate-600 mb-3 block"></i>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest">No expenses logged.</p>
+                        <p class="text-[9px] text-slate-500 mt-1 font-bold">Excellent discipline, Empress.</p>
+                    </div>
+                `;
+            } else {
+                state.expenses.forEach(x => {
+                    const dateStr = new Date(x.date).toLocaleDateString('en-SG', { day: '2-digit', month: 'short' });
+                    const div = document.createElement('div');
+                    div.className = "glass p-4 rounded-2xl flex justify-between items-center transition hover:bg-white/10";
+                    div.innerHTML = `
+                        <div class="flex items-center space-x-3 overflow-hidden">
+                            <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${x.isToxic ? 'bg-rose-500/10 text-rose-500' : 'bg-white/5 text-emerald-400'}">
+                                <i class="ph-fill ${x.isToxic ? 'ph-skull' : 'ph-receipt'} text-xl"></i>
+                            </div>
+                            <div class="truncate">
+                                <h4 class="font-bold text-sm truncate text-white">${x.desc}</h4>
+                                <p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">${x.cat} • ${dateStr}</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center space-x-2 flex-shrink-0 pl-2">
+                            <div class="text-right">
+                                <p class="font-black text-sm ${x.isToxic ? 'text-rose-500' : 'text-slate-200'}">$${x.amt.toLocaleString('en-SG', {minimumFractionDigits: 2, maximumFractionDigits: 2})}</p>
+                                ${x.isToxic ? `<p class="text-[8px] font-bold text-rose-400 uppercase tracking-widest">Tax: $${(x.amt * 0.2).toFixed(2)}</p>` : ''}
+                            </div>
+                            <button onclick="deleteItem(${x.id})" class="text-slate-600 hover:text-rose-500 p-2 ml-1 transition active
