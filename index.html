@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sovereign Fortress</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/@phosphor-icons/web"></script>
+<style>
+body{background:#0f172a;color:#f8fafc;font-family:sans-serif;}
+.glass{background:rgba(30,41,59,0.7);border:1px solid rgba(255,255,255,0.1);backdrop-filter:blur(10px);}
+</style>
+</head>
+<body class="p-5 pb-24 space-y-5" style="background-image: radial-gradient(circle at 10% 20%, rgba(255, 192, 203, 0.05) 0%, transparent 20%);">
+
+<div class="flex justify-between items-end border-b border-white/10 pb-4">
+    <div><h1 class="text-2xl font-black uppercase text-white">The Fortress</h1><p id="dt" class="text-[10px] font-bold text-amber-400 uppercase mt-1"></p></div>
+    <div class="text-right"><p class="text-[10px] text-slate-500 uppercase font-bold">Payday</p><p class="text-3xl font-black text-rose-500 leading-none" id="days">0</p></div>
+</div>
+
+<div class="glass p-5 rounded-[2rem] border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.05)]">
+    <div class="flex justify-between mb-2">
+        <div><p class="text-[10px] text-slate-400 uppercase font-bold">Monthly Arsenal</p><p class="text-xl font-black text-white">$8,882.88</p></div>
+        <div class="text-right"><p class="text-[10px] text-slate-400 uppercase font-bold">Remaining</p><p id="rem" class="text-2xl font-black text-emerald-400">$8,882.88</p></div>
+    </div>
+</div>
+
+<div class="glass p-5 rounded-[2rem] shadow-[0_0_15px_rgba(251,191,36,0.1)]">
+    <div class="flex justify-between items-start">
+        <div>
+            <p class="text-[10px] text-slate-400 uppercase font-bold">Target: $30,000</p>
+            <div class="flex items-center gap-3"><p id="cash" class="text-3xl font-black text-white">$0</p><button onclick="upd()" class="text-amber-400 text-xl"><i class="ph-bold ph-pencil-simple"></i></button></div>
+        </div>
+    </div>
+</div>
+
+<div class="grid grid-cols-2 gap-4">
+    <div class="glass p-4 rounded-3xl text-center border-rose-500/20"><i class="ph-bold ph-skull text-rose-500 text-2xl"></i><p id="tax" class="text-2xl font-black text-white">$0</p><p class="text-[9px] text-slate-500 uppercase font-bold mt-1">Toxic Tax Owed</p></div>
+    <div class="bg-slate-800 p-4 rounded-3xl flex flex-col justify-center text-center"><p class="text-amber-500 font-bold text-[9px] uppercase tracking-widest">Sanctuary</p><p class="text-sm font-bold text-slate-200">AMK / Bishan<br><span class="text-xs font-medium text-slate-400">Cherry Blossom</span></p></div>
+</div>
+
+<div class="flex justify-between items-center"><h2 class="text-[10px] font-black text-slate-500 uppercase tracking-widest"><i class="ph-bold ph-list-dashes"></i> Audit Logs</h2><button onclick="opn()" class="bg-amber-500 text-black w-12 h-12 rounded-full font-bold text-2xl flex justify-center items-center active:scale-90 transition"><i class="ph-bold ph-plus"></i></button></div>
+<div id="logs" class="space-y-3 pb-10"></div>
+
+<div id="mod" class="fixed inset-0 bg-black/90 z-50 p-5 flex items-center justify-center hidden">
+    <div class="glass p-8 w-full max-w-md rounded-[2.5rem] space-y-5">
+        <div class="flex justify-between"><h2 class="text-xl font-black uppercase italic">Log Spend</h2><button onclick="cls()" class="text-slate-400 text-xl"><i class="ph-bold ph-x"></i></button></div>
+        <form id="frm" onsubmit="sub(event)" class="space-y-4">
+            <input id="desc" required placeholder="Item Description" class="w-full p-4 rounded-2xl bg-slate-900 border border-white/10 text-white focus:outline-none">
+            <div class="grid grid-cols-2 gap-3">
+                <input id="amt" required type="number" step="0.01" placeholder="Cost ($)" class="w-full p-4 rounded-2xl bg-slate-900 border border-white/10 text-white focus:outline-none">
+                <select id="cat" class="w-full p-4 rounded-2xl bg-slate-900 border border-white/10 text-white focus:outline-none"><option>Essential</option><option>Kitten</option><option>Impulse</option></select>
+            </div>
+            <div onclick="tog()" class="p-4 rounded-2xl bg-white/5 border border-white/10 flex justify-between items-center cursor-pointer">
+                <div class="flex gap-3"><i id="tx-icn" class="ph-fill ph-skull text-slate-500 text-2xl"></i><div><p class="font-bold text-sm">Toxic Impulse?</p><p class="text-[9px] text-slate-500 uppercase">+20% Tax</p></div></div>
+                <div id="tx-chk" class="w-6 h-6 border-2 border-slate-600 rounded-lg flex items-center justify-center"></div>
+            </div>
+            <button type="submit" class="w-full bg-amber-500 text-black font-black uppercase p-4 rounded-2xl mt-2 active:scale-95">Submit to Auditor</button>
+        </form>
+    </div>
+</div>
+
+<script>
+const SAL=8882.88; let st={sav:0,exp:[],tx:false};
+function ld(){try{let d=localStorage.getItem('sov_v5');if(d)st=JSON.parse(d);}catch(e){}if(!st.exp)st.exp=[];ui();}
+function sv(){localStorage.setItem('sov_v5',JSON.stringify(st));ui();}
+function opn(){document.getElementById('mod').classList.remove('hidden');}
+function cls(){document.getElementById('mod').classList.add('hidden');}
+function upd(){let v=prompt("Cash Core:",st.sav);if(v!==null&&v!==""&&!isNaN(v)){st.sav=parseFloat(v);sv();}}
+function tog(){st.tx=!st.tx;document.getElementById('tx-icn').className=`ph-fill ph-skull text-2xl ${st.tx?'text-rose-500':'text-slate-500'}`;document.getElementById('tx-chk').innerHTML=st.tx?'<i class="ph-bold ph-check text-rose-500"></i>':'';document.getElementById('tx-chk').className=`w-6 h-6 border-2 rounded-lg flex items-center justify-center ${st.tx?'border-rose-500':'border-slate-600'}`;}
+function sub(e){e.preventDefault();let d=document.getElementById('desc').value,a=parseFloat(document.getElementById('amt').value);if(!d||isNaN(a))return;st.exp.unshift({id:Date.now(),desc:d,amt:a,cat:document.getElementById('cat').value,t:st.tx,dt:new Date().toLocaleDateString('en-SG',{day:'2-digit',month:'short'})});document.getElementById('frm').reset();if(st.tx)tog();cls();sv();}
+window.del=(id)=>{st.exp=st.exp.filter(x=>x.id!==id);sv();};
+function ui(){
+    let td=new Date(),pd=new Date(td.getFullYear(),td.getMonth(),12);if(td.getDate()>12)pd.setMonth(pd.getMonth()+1);
+    document.getElementById('dt').innerText=td.toLocaleDateString('en-SG',{weekday:'long',year:'numeric',month:'short',day:'numeric'});
+    document.getElementById('days').innerText=Math.max(0,Math.ceil((pd-td)/86400000));
+    let sp=st.exp.reduce((s,x)=>s+(Number(x.amt)||0),0);
+    document.getElementById('rem').innerText='$'+(SAL-sp).toLocaleString('en-SG',{minimumFractionDigits:2});
+    document.getElementById('rem').className=`text-2xl font-black ${SAL-sp<0?'text-rose-500':'text-emerald-400'}`;
+    let c=Number(st.sav)||0; document.getElementById('cash').innerText='$'+c.toLocaleString('en-SG');
+    let tx=st.exp.filter(x=>x.t).reduce((s,x)=>s+((Number(x.amt)||0)*0.2),0);
+    document.getElementById('tax').innerText='$'+Math.round(tx).toLocaleString('en-SG');
+    let lg=document.getElementById('logs'); lg.innerHTML='';
+    if(st.exp.length===0)lg.innerHTML=`<div class="p-6 bg-white/5 rounded-[2rem] text-center text-slate-500 text-[10px] font-bold uppercase tracking-widest border border-dashed border-white/10">No expenses logged.</div>`;
+    st.exp.forEach(x=>{
+        lg.innerHTML+=`<div class="glass p-4 rounded-2xl flex justify-between items-center"><div class="flex gap-3"><div class="w-10 h-10 rounded-xl flex items-center justify-center ${x.t?'bg-rose-500/10 text-rose-500':'bg-white/5 text-emerald-400'}"><i class="ph-fill ${x.t?'ph-skull':'ph-receipt'} text-xl"></i></div><div><h4 class="font-bold text-sm text-white">${x.desc}</h4><p class="text-[9px] font-bold text-slate-500 uppercase tracking-widest">${x.cat} • ${x.dt}</p></div></div><div class="flex items-center"><div class="text-right"><p class="font-black text-sm ${x.t?'text-rose-500':'text-slate-200'}">$${Number(x.amt).toLocaleString('en-SG',{minimumFractionDigits:2})}</p>${x.t?`<p class="text-[8px] text-rose-400 font-bold uppercase tracking-widest">Tax: $${(x.amt*0.2).toFixed(2)}</p>`:''}</div><button onclick="del(${x.id})" class="ml-2 p-2 text-slate-600 active:scale-90"><i class="ph-bold ph-trash"></i></button></div></div>`;
+    });
+}
+window.onload=ld;
+</script>
+</body>
+</html>
